@@ -8,6 +8,9 @@
 typedef struct{
 	char id[21];
 	char pwd[21];
+	char name[30];
+	char email[30];
+	long double amount;
 
 } user;
 
