@@ -56,7 +56,22 @@ int main()
 	char ch,c;
 	int choice;
 	int flag=1;
- 
+	
+	trans t;
+	int i=0;
+	/*
+	FILE* f=fopen("transaction.txt","rb+");
+	while(!feof(f)) 
+	{
+		i++;
+		fread(&t,sizeof(t),1,f);
+		printf("\n%d . Date : %s    User : %s\n    Amount : %lf\n     ",i,t.time_stamp,t.id,t.amt);
+
+	}
+	fclose(f);
+	
+	ff;getchar();
+	*/
 	do 
 	{
 		system("clear");
@@ -458,7 +473,6 @@ int admin_func()
 	int flag;
 	int flag1;
 	c='a';
-	
 	do
 	{
 		ch=c;
@@ -524,7 +538,6 @@ stemp admin_login()
 	char id[21];
 	char *A;
 	s.flag=0;
-	getchar();
 	f=fopen("admin_data.txt","ab+");
 	if(f==NULL)
 	{
@@ -783,8 +796,8 @@ void transaction()
 {
 	FILE* f2=fopen("transaction.txt","ab+");
 	FILE* f1=fopen("user_data.txt","rb+");
-	user u,v;
 	trans t;
+	user u,v;
 	int flag=0;
 	double amt=77.75;
 //	char date[15]="19/01/2017";
@@ -811,12 +824,12 @@ void transaction()
 			break;
 		}
 
-		}
+	}
 
 	if(!flag)
 	{
-		printf("\n1User not found. \n\nYou must register yourself.\n\nPress ENter to continue. ");
-		ff;getchar();
+		printf("\nUser not found. \n\nYou must register yourself.\n\nPress ENter to continue. ");
+		ff;getchar();ff;getchar();
 		fclose(f1);fclose(f2);
 		return;
 	}
@@ -851,6 +864,7 @@ void transaction()
 		strcpy(	v.t[v.tcount].date,date);
 		v.tcount++;*/
 		fwrite(&v,sizeof(v),1,f1);
+		fseek(f2,0,SEEK_END);
 		fwrite(&t,sizeof(t),1,f2);
 		ff;getchar();
 	}
@@ -880,7 +894,7 @@ void user_transaction(user u)
 		fread(&v,sizeof(v),1,f);
 		if(strcmp(v.id,u.id)==0)
 		{
-			printf("\n%d . %s : %lf\n",i,v.time_stamp,v.amt);
+			printf("\n%d . %s    Amount : %lf\n",i,v.time_stamp,v.amt);
 			i++;
 		}
 	}
@@ -900,7 +914,7 @@ void admin_transaction(admin a)
 	{
 		fread(&v,sizeof(v),1,f);
 		
-		printf("\n%d . Date : %s    Amount : %lf\n",i,v.time_stamp,v.amt);
+		printf("\n%d . Date : %s    User : %s\n    Amount : %lf\n     ",i,v.time_stamp,v.id,v.amt);
 		i++;
 	}
 	fclose(f);	
