@@ -4,20 +4,41 @@
 #include <string.h>
 #include <unistd.h>   
 
+#define ADMINPASS "qwerty123"
 #define ff fflush(stdin);
+#define err printf("\n\nflag\n\n");
+
 typedef struct{
 	char id[21];
 	char pwd[21];
 	char name[30];
 	char email[30];
-	long double amount;
+	double amount;
 
 } user;
 
+typedef struct{
+	char id[21];
+	char pwd[21];
+	double income;
+
+}admin;
+
+typedef struct{
+	user u;
+	admin a;
+	int flag;
+} stemp;
+
 int user_func();
+stemp user_login();
 int user_reg();
-void user_profile(FILE* f,user u);
+void user_profile(user u);
 int admin_func();
+void transaction();
+stemp admin_login();
+int admin_reg();
+void admin_profile(admin a);
 
 int main()
 {
@@ -30,9 +51,10 @@ int main()
 		system("clear");
 		printf("Welcome to Toll Plaza\n\n");
 		printf("Please select from options below (1-3): \n\n");
-		printf("1. User \n");
-		printf("2. Administrator \n");
-		printf("3. Exit \n\n");	
+		printf("1. User login \n");
+		printf("2. Administrator login \n");
+		printf("3. Perform Toll Transaction \n");
+		printf("4. Exit \n\n");	
 		scanf("%d", &choice);ff;
 
  		switch(choice)
@@ -44,6 +66,9 @@ int main()
 					admin_func();
 					break;
 			case 3: 
+					transaction();
+					break;
+			case 4: 
 					ff;getchar();system("clear");
 					printf("\nDo you really want to exit?(Y/N) : \n\n");	
 					ff;scanf(" %c",&c);
@@ -68,26 +93,14 @@ int main()
 int user_func()
 {
 	
-
-	FILE* f;
 	char ch,c;
-	char id[21]="";
-	char s[12];
+	char id[21];
 	char pwd[21];	
 	user u;
 	int i=0;
 	int flag;
 	int flag1;
-
-	f=fopen("user_data.txt","ab+");
-	if(f==NULL)
-	{
-		system("clear");
-		printf("\n404 File not found. \n\nPlease try again later. \n");
-		fclose(f);
-		return -1;
-	}
-	
+	stemp s;
 	c='a';
 	
 	do
@@ -101,71 +114,14 @@ int user_func()
 		switch(ch)
 		{
 			case 'Y':
-			case 'y':
-						system("clear");
-						printf("\nEnter your login details: \n\n");
-						printf("Car no : ");
-						scanf("%s",id);
-						ff; getchar();
-						char *A;					
-						fseek(f,0,SEEK_SET);
-						flag=0;
-
-						while(!feof(f))
+			case 'y':	
+						s=user_login();
+						if(s.flag)
 						{
-							fread(&u,sizeof(u),1,f);
-						
-							if(strcmp(u.id,id)==0)
-							{
-								flag=1;
-								do{
-
-									A=getpass("\nPassword : ");
-									strcpy(pwd,A);
-									
-									if(strcmp(pwd,u.pwd)==0)
-									{
-										break;
-									}
-						
-//									if(i==2){i++;break;}
-						
-									printf("\n\n%d attempts left\n",2-i );
-									i++;
-
-								} while(i<3);
-
-								if(i==3)
-								{
-
-									printf("\n\nPassword attempt unsuccesful thrice. \n\n");
-									fclose(f);
-									ff;	
-									getchar();
-									return -1;
-								}
-								
-
-								system("clear");
-
-								printf("\nSuccessfully logged in.  \n\nPress Enter to continue.\n");
-								ff;
-
-								user_profile(f,u);			
-								flag=1;
-								break;
-							}
-
+							system("clear");
+							user_profile(s.u);
 						}
-
-						if(!flag)
-						{
-							printf("\nUser not found. \n");
-						}
-
-
 						break;
-			
 			case 'N':
 			case 'n':
 						system("clear");
@@ -183,7 +139,6 @@ int user_func()
 						system("clear");
 						printf("\nDo you really want to return to main menu?(Y/N) : \n\n");	
 						ff;scanf(" %c",&c);
-						fclose(f);
 						if(c=='y'||c=='Y')
 							return 0;	
 						break;
@@ -199,10 +154,99 @@ int user_func()
 
 	}while(1);
 	
-	fclose(f);
+
 	return 1;
 }
 
+stemp user_login()
+{
+	stemp s;
+	FILE* f;
+	char ch;
+	user u;
+	char pwd[21];
+	char id[21];
+	char *A;
+	s.flag=0;
+
+	f=fopen("user_data.txt","ab+");
+	if(f==NULL)
+	{
+		system("clear");
+		printf("\n404 Not Found. \n\nPlease try again later. \n");
+		//fclose(f);
+		return s;
+	}
+
+	system("clear");
+	
+	printf("\nEnter your login details: \n\n");
+	printf("Car no : ");
+	ff scanf("%s",id);
+					
+	int flag=0;
+	int temp;
+
+	while(1)
+	{
+	
+		if(feof(f))
+		{
+			break;
+		}
+	
+		fread(&u,sizeof(u),1,f);
+		
+		if(strcmp(u.id,id)==0)
+		{
+		
+			flag=1;
+		
+			do
+			{
+
+				A=getpass("\nPassword : ");
+				strcpy(pwd,A);
+									
+				if(strcmp(pwd,u.pwd)==0)
+				{
+					break;
+				}		
+			
+				printf("\nIncorrect Password. \n\nDo you want to ReEnter your password? (y/n)  : ");
+				ff;scanf(" %c",&ch);
+
+			} while(ch=='y'||ch=='Y');
+			
+			if(ch=='n')
+			{
+				printf("\nLogin Unsuccessful. \n\n. ");
+				fclose(f);
+				return s;
+			}					
+
+			system("clear");
+
+			printf("\nSuccessfully logged in.  \n\nPress Enter to continue.\n");
+			ff;	getchar();
+			
+			break;
+		}
+
+	}
+
+	if(!flag)
+	{
+		printf("\nUser not found. \n");
+		ff getchar();
+		fclose(f);
+		return s;
+	}
+	s.flag=1;
+	s.u=u;
+	fclose(f);
+	return s;
+}
 int user_reg()
 {
 
@@ -274,21 +318,43 @@ int user_reg()
 	}
 
 	strcpy(u.pwd,A);
-
+	ff;
+	printf("\nEmail id : ");ff;
+	scanf("%s",u.email);ff;getchar();
+	printf("\nName : ");ff;
+	scanf("%[^\n]",u.name);
+	u.amount=0;
+	//printf("%s",u.name);
 	fwrite(&u,sizeof(u),1,f);
 
-	fclose(f);	
+	fclose(f);	ff;getchar();
+	system("clear");
 	printf("\nUser registered successfully .");
-	ff getchar();system("clear");
+	ff;//system("clear");
 	return 1;
 
 }
 
-void user_profile(FILE* f,user u)
+void user_profile(user u)
 {
+	FILE* f;
+	user v;
+	f=fopen("user_data.txt","rb+");
+	fseek(f,0,SEEK_SET);
+	while(1)
+	{
+		if(feof(f))
+			break;
+		fread(&v,sizeof(v),1,f);
+		if(strcmp(v.id,u.id)==0)
+			break;
+	}
+	fseek(f,-1*sizeof(u),SEEK_CUR);
 
+	double amt;
 	int choice;
 	char ch,c;
+
 	do
 	{
 		system("clear");
@@ -296,48 +362,68 @@ void user_profile(FILE* f,user u)
 		printf("\n%s's Profile\n\n",u.id);	
 		printf("Please select from options below(1-7) : \n\n");
 		printf("1. View profile information \n");
-		printf("2. Update profile information \n");
-		printf("3. Check E-Wallet Balance \n");
-		printf("4. Credit E-Wallet \n");
-		printf("5. View Transactions \n");
-		printf("6. Logout\n");
-		printf("7. Exit\n\n");
+		//printf(". Update profile information \n");
+		printf("2. Check E-Wallet Balance \n");
+		printf("3. Credit E-Wallet \n");
+		printf("4. View Transactions \n");
+		printf("5. Logout\n");
+		printf("6. Exit\n\n");
 		ff;scanf("%d", &choice);ff;
 
  		switch(choice)
  		{
  			case 1:
-
+ 					system("clear");
+ 					printf("\nProfile Information : \n");
+ 					printf("\nCar no : %s \n",u.id);
+ 					printf("\nName : %s \n",u.name);
+					printf("\nEmail id : %s \n\nPress Enter to go back. \n\n",u.email);
+//					printf("\nCar no : %s \n",u.id);
+					ff;getchar();
+					getchar();
  					break;
  			case 2:
-
+ 					system("clear");
+ 					printf("\nYour E-Wallet Balance : %lf",u.amount);
+ 					printf("\n\nPress Enter to continue. \n\n");
+ 					ff;getchar();getchar();
  					break;
  			case 3:
-
+ 					system("clear");
+ 					printf("\nCurrent Balance : %lf",u.amount);
+ 					printf("\nCredit E-Wallet Balance : \n");
+ 					printf("\nEnter Credit amount : ");
+ 					scanf("%lf",&amt);
+ 					u.amount+=amt;			
+ 					printf("\nUpdated Balance : %lf \n\nPress Enter to go back. ",u.amount);
+ 					//fseek(f,-1,SEEK_CUR);
+ 					fwrite(&u,sizeof(u),1,f);
+ 					ff;getchar();getchar();
  					break;
  			case 4:
 
  					break;
  			case 5:
-
+					system("clear");
+					printf("\nDo you really want to Logout?(Y/N) : \n\n");	
+					ff;scanf(" %c",&c);
+					//fclose(f);
+					if(c=='y'||c=='Y')
+					{
+						fclose(f);
+						return ;	
+					}
  					break;
  			case 6:
-					system("clear");
-					printf("\nDo you really want to return to main menu?(Y/N) : \n\n");	
-					ff;scanf(" %c",&c);
-					fclose(f);
-					if(c=='y'||c=='Y')
-						return ;	
- 					break;
- 			case 7:
 					ff;getchar();system("clear");
 					printf("\nDo you really want to exit?(Y/N) : \n\n");	
 					ff;scanf(" %c",&c);
 					if(c=='y'||c=='Y')
+					{
+						fclose(f);
 						exit(0);
+					}
 					break;
-
- 					break;
  			default:
 					ff;getchar();
 					system("clear");
@@ -346,13 +432,343 @@ void user_profile(FILE* f,user u)
  		}
 
 
-	}while(0);
-
+	}while(1);
+	fclose(f);
 	return;
 }
 
 int admin_func()
 {
+	char ch,c;
+	char id[21];
+	char pwd[21];	
+	admin a;
+	stemp s;
+	int i=0;
+	int flag;
+	int flag1;
+	c='a';
+	
+	do
+	{
+		ch=c;
+		ff; getchar();	system("clear");
+		printf("\nAre you a registered admin? \n");
+		printf("\n[Enter M to go back to main menu.] \n\nSelect your choice (Y/N/M)\n\n");
+		scanf(" %c",&ch);
+		ff getchar();
+		switch(ch)
+		{
+			case 'Y':
+			case 'y':	
+						s=admin_login();
+						if(s.flag)
+						{
+							system("clear");
+							admin_profile(s.a);
+						}
+						break;
+			case 'N':
+			case 'n':
+						system("clear");
+						printf("\nYou have to register before going forward.");	
+						printf("\n\nPress enter to continue. \n\n");
+						ff;getchar();system("clear");
+
+						flag1=admin_reg();
+
+
+						break;
+
+			case 'M':
+			case 'm':
+						system("clear");
+						printf("\nDo you really want to return to main menu?(Y/N) : \n\n");	
+						ff;scanf(" %c",&c);
+						if(c=='y'||c=='Y')
+							return 0;	
+						break;
+
+			default:
+						system("clear");
+						printf("\nWrong choice. \n");
+						printf("\nPress Enter to continue. \n\n");			
+						break;
+						
+
+		}
+
+	}while(1);
+	
 
 	return 1;
+}
+
+stemp admin_login()
+{	
+	stemp s;
+	FILE* f;
+	char ch;
+	admin a;
+	char pwd[21];
+	char id[21];
+	char *A;
+	s.flag=0;
+
+	f=fopen("admin_data.txt","ab+");
+	if(f==NULL)
+	{
+		system("clear");
+		printf("\n404 Not Found. \n\nPlease try again later. \n");
+		//fclose(f);
+		return s;
+	}
+
+	system("clear");
+	
+	printf("\nEnter your login details: \n\n");
+	printf("Email id : ");
+	ff scanf("%s",id);
+					
+	int flag=0;
+	int temp;
+
+	while(1)
+	{
+	
+		if(feof(f))
+		{
+			break;
+		}
+	
+		fread(&a,sizeof(a),1,f);
+		
+		if(strcmp(a.id,id)==0)
+		{
+		
+			flag=1;
+		
+			do
+			{
+
+				A=getpass("\nPassword : ");
+				strcpy(pwd,A);
+									
+				if(strcmp(pwd,a.pwd)==0)
+				{
+					break;
+				}		
+			
+				printf("\nIncorrect Password. \n\nDo you want to ReEnter your password? (y/n)  : ");
+				ff;scanf(" %c",&ch);
+
+			} while(ch=='y'||ch=='Y');
+			
+			if(ch=='n')
+			{
+				printf("\nLogin Unsuccessful. \n\n. ");
+				fclose(f);
+				return s;
+			}					
+
+			system("clear");
+
+			printf("\nSuccessfully logged in.  \n\nPress Enter to continue.\n");
+			ff;	getchar();
+			
+			break;
+		}
+
+	}
+
+	if(!flag)
+	{
+		printf("\nAdmin not found. \n");
+		ff getchar();
+		fclose(f);
+		return s;
+	}
+	s.flag=1;
+	s.a=a;
+	fclose(f);	return s;
+}
+
+int admin_reg()
+{
+
+	char ch;
+	char *A,*B,*C;
+	int flag;
+	admin u,v;
+
+	printf("\nYou are being redirected to registration page. ");
+	printf("\n\nPress q followed by Enter to go back.\n");
+	printf("\nPress Enter to continue.\n\n");
+	ff;scanf("%c",&ch);
+
+	if(ch=='q'||ch=='Q')
+	{
+		return -1;
+	}
+	ff;system("clear");
+
+	C=getpass("\nEnter Pass Key to register admin : ");
+	if(strcmp(C,ADMINPASS)!=0)
+	{
+		printf("\n\nWrong Pass Key . \n\nCannot Register. \n\nPress Enter to continue. ");
+		ff;
+		return -1;
+	}
+	printf("\nPress Enter to continue. ");
+	ff; getchar();
+	system("clear");
+
+	FILE* f=fopen("admin_data.txt","ab+");
+	printf("\nREGISTRATION PAGE.\n\n");
+	printf("Enter the following details : \n\n");
+	
+	do{
+		
+		flag=1;
+		printf("Email id : ");
+		ff; scanf("%s",u.id);					
+	
+		fseek(f,0,SEEK_SET);
+	
+		while(!feof(f))
+		{				
+			fread(&v,sizeof(u),1,f);
+			if(strcmp(u.id,v.id)==0)
+			{
+				flag=0;
+				break;
+			}
+		}
+		if(!flag)
+		{
+			ff;system("clear");
+			printf("\nAdmin already exists. \n\nReEnter ");
+		}
+		else
+			break;
+	}while(1);
+
+	while(1)
+	{
+		ff
+		A=getpass("\nPassword : ");
+		strcpy(u.pwd,A);ff;
+		B=getpass("\nConfirm Password : ");ff;
+//		printf("\n%s",u.pwd);
+//		printf("\n%s",B);
+
+		if(strcmp(u.pwd,B)==0)
+		{
+			break;
+		}
+		else
+		{
+			printf("\n\nPasswords do not match. ReEnter :\n");
+		}
+	}
+
+	strcpy(u.pwd,A);
+	ff;
+	u.income=0;
+	fwrite(&u,sizeof(u),1,f);
+
+	fclose(f);	ff;getchar();
+	system("clear");
+	printf("\nAdmin registered successfully .");
+	ff;//system("clear");
+	return 1;
+
+}
+
+void admin_profile(admin u)
+{
+	FILE* f;
+	admin v;
+	f=fopen("admin_data.txt","rb+");
+	fseek(f,0,SEEK_SET);
+	while(1)
+	{
+		if(feof(f))
+			break;
+		fread(&v,sizeof(v),1,f);
+		if(strcmp(v.id,u.id)==0)
+			break;
+	}
+	fseek(f,-1*sizeof(u),SEEK_CUR);
+
+	double amt;
+	int choice;
+	char ch,c;
+
+	do
+	{
+		system("clear");
+		printf("Welcome to Toll Plaza\n");
+		printf("\nADMIN %s's Profile\n\n",u.id);	
+		printf("Please select from options below(1-7) : \n\n");
+		printf("1. View Total Income \n");
+		//printf(". Update profile information \n");
+		printf("2. View Transactions \n");
+		printf("3. Logout\n");
+		printf("4. Exit\n\n");
+		ff;scanf("%d", &choice);ff;
+
+ 		switch(choice)
+ 		{
+ 			case 1:
+ 					system("clear");
+ 					printf("\nProfile Information : \n");
+ 					printf("\nTotal Income : %lf \n",u.income);
+// 					printf("\nName : %s \n",u.name);
+//					printf("\nEmail id : %s \n\nPress Enter to go back. \n\n",u.email);
+//					printf("\nCar no : %s \n",u.id);
+					ff;getchar();
+					getchar();
+ 					break;
+ 			case 2:
+
+  					break;
+ 			case 3:
+					system("clear");
+					printf("\nDo you really want to Logout?(Y/N) : \n\n");	
+					ff;scanf(" %c",&c);
+					//fclose(f);
+					if(c=='y'||c=='Y')
+					{
+						fclose(f);
+						return ;	
+					}
+ 					break;
+ 			case 4:
+					ff;getchar();system("clear");
+					printf("\nDo you really want to exit?(Y/N) : \n\n");	
+					ff;scanf(" %c",&c);
+					if(c=='y'||c=='Y')
+					{
+						fclose(f);
+						exit(0);
+					}
+					break;
+ 			default:
+					ff;getchar();
+					system("clear");
+					printf("\nWrong choice. \n\nPress Enter to continue.\n");ff;getchar();
+ 					break;
+ 		}
+
+
+	}while(1);
+	fclose(f);
+	return;
+}
+
+void transaction()
+{
+
+	return;
 }
