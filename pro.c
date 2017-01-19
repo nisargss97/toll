@@ -3,21 +3,26 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>   
-
+#include <time.h>
 #define ADMINPASS "qwerty123"
 #define ff fflush(stdin);
 #define err printf("\n\nflag\n\n");
 
+typedef struct{
+	double amt;
+	char time_stamp[40];
+	char id[21];
+} trans;
 typedef struct{
 	char id[21];
 	char pwd[21];
 	char name[30];
 	char email[30];
 	double amount;
-
 } user;
 
-typedef struct{
+
+typedef struct{ 
 	char id[21];
 	char pwd[21];
 	double income;
@@ -34,11 +39,17 @@ int user_func();
 stemp user_login();
 int user_reg();
 void user_profile(user u);
+
 int admin_func();
-void transaction();
 stemp admin_login();
 int admin_reg();
 void admin_profile(admin a);
+void update_income(double amt);
+
+void transaction();
+void user_transaction();
+void admin_transaction();
+
 
 int main()
 {
@@ -323,10 +334,10 @@ int user_reg()
 	scanf("%s",u.email);ff;getchar();
 	printf("\nName : ");ff;
 	scanf("%[^\n]",u.name);
-	u.amount=0;
-	//printf("%s",u.name);
+	ff; printf("\nAmount to be credited to E-Wallet : ");
+	scanf(" %lf",&u.amount);
+	//u.tcount=0;
 	fwrite(&u,sizeof(u),1,f);
-
 	fclose(f);	ff;getchar();
 	system("clear");
 	printf("\nUser registered successfully .");
@@ -675,6 +686,7 @@ int admin_reg()
 	strcpy(u.pwd,A);
 	ff;
 	u.income=0;
+	//u.tcount=0;
 	fwrite(&u,sizeof(u),1,f);
 
 	fclose(f);	ff;getchar();
@@ -731,7 +743,7 @@ void admin_profile(admin u)
 					getchar();
  					break;
  			case 2:
-
+ 					update_income(u);
   					break;
  			case 3:
 					system("clear");
@@ -769,6 +781,92 @@ void admin_profile(admin u)
 
 void transaction()
 {
+	FILE* f2=fopen("transaction.txt","ab+");
+	FILE* f1=fopen("user_data.txt","rb+");
+	user u,v;
+	trans t;
+	int flag=0;
+	double amt=77.75;
+	char date[15]="19/01/2017";
 
+	system("clear");
+	if(f1==NULL)
+	{
+		printf("\nNo user Registered.\n\nUsers MUST be registered. \n\nPress Enter to continue.\n\n");
+		ff; getchar();getchar();
+		fclose(f2);
+		return;
+	}
+	printf("\nToll Transaction Page : \n");
+	printf("\nEnter Car no : ");
+	ff;scanf("%s",u.id);
+
+	while(!feof(f1))
+	{
+
+		fread(&v,sizeof(v),1,f1);
+		if(strcmp(v.id,u.id)==0)
+		{
+			flag=1;
+			break;
+		}
+
+		}
+
+	if(!flag)
+	{
+		printf("\n1User not found. \n\nYou must register yourself.\n\nPress 1ENter to continue. ");
+		ff;getchar();
+		fclose(f1);fclose(f2);
+		return;
+	}
+//	fseek(f,-1*sizeof(u),SEEK_CUR);
+
+	fseek(f1,-1*sizeof(v),SEEK_CUR);
+	printf("\nToll Tax : %lf\n",amt);
+	if(v.amount<amt)
+	{
+		printf("\nCurrent amount in your E-Wallet : %lf\n",v.amount);
+
+		printf("\nYou do not have the required amount in your E-Wallet. \n");
+		printf("\nYou cannot pass... \n\nPress 2Enter to continue...\n");
+		ff;getchar();
+	}
+	else
+	{
+		time_t ltime=time(NULL);
+		strcpy(t.id,v.id);
+		t.amt=amt;
+		strcpy(t.time_stamp,asctime( localtime(&ltime)));
+		
+		printf("\nCurrent amount in your E-Wallet : %lf\n",v.amount);
+		v.amount=v.amount-amt;
+		printf("\nFinal amount in your E-Wallet : %lf\n",v.amount);
+		printf("\nTransaction complete. \n");
+/*		if(v.tcount>10)		
+		{
+			v.tcount=0;
+		}
+		v.t[v.tcount].amt=amt;
+		strcpy(	v.t[v.tcount].date,date);
+		v.tcount++;*/
+		fwrite(&v,sizeof(v),1,f1);
+		fwrite(&t,sizeof(t),1,f2);
+		update_income(amt);
+	}
+	fclose(f1);
+	fclose(f2);
+	ff;getchar();
 	return;
 }
+
+void update_income(double amt,)
+{
+	FILE* f=fopen("admin_data.txt","rb+");
+
+	fclose(f);
+	return;
+}
+
+void user_transaction();
+void admin_transaction();
