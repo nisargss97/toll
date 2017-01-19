@@ -35,7 +35,7 @@ typedef struct{
 	int flag;
 } stemp;
 
-int user_func();
+int user_func(); 
 stemp user_login();
 int user_reg();
 void user_profile(user u);
@@ -44,12 +44,12 @@ int admin_func();
 stemp admin_login();
 int admin_reg();
 void admin_profile(admin a);
-void update_income(double amt);
+void update_income();
 
 void transaction();
-void user_transaction();
-void admin_transaction();
-
+void user_transaction(user u);
+void admin_transaction(admin a);
+void admin_income(admin a);
 
 int main()
 {
@@ -235,7 +235,6 @@ stemp user_login()
 				fclose(f);
 				return s;
 			}					
-
 			system("clear");
 
 			printf("\nSuccessfully logged in.  \n\nPress Enter to continue.\n");
@@ -412,7 +411,7 @@ void user_profile(user u)
  					ff;getchar();getchar();
  					break;
  			case 4:
-
+ 					user_transaction(u);
  					break;
  			case 5:
 					system("clear");
@@ -525,7 +524,7 @@ stemp admin_login()
 	char id[21];
 	char *A;
 	s.flag=0;
-
+	getchar();
 	f=fopen("admin_data.txt","ab+");
 	if(f==NULL)
 	{
@@ -734,8 +733,9 @@ void admin_profile(admin u)
  		{
  			case 1:
  					system("clear");
- 					printf("\nProfile Information : \n");
- 					printf("\nTotal Income : %lf \n",u.income);
+ 					admin_income(u);
+// 					printf("\nProfile Information : \n");
+// 					printf("\nTotal Income : %lf \n",u.income);
 // 					printf("\nName : %s \n",u.name);
 //					printf("\nEmail id : %s \n\nPress Enter to go back. \n\n",u.email);
 //					printf("\nCar no : %s \n",u.id);
@@ -743,7 +743,7 @@ void admin_profile(admin u)
 					getchar();
  					break;
  			case 2:
- 					update_income(u);
+ 					admin_transaction(u);
   					break;
  			case 3:
 					system("clear");
@@ -787,7 +787,7 @@ void transaction()
 	trans t;
 	int flag=0;
 	double amt=77.75;
-	char date[15]="19/01/2017";
+//	char date[15]="19/01/2017";
 
 	system("clear");
 	if(f1==NULL)
@@ -815,7 +815,7 @@ void transaction()
 
 	if(!flag)
 	{
-		printf("\n1User not found. \n\nYou must register yourself.\n\nPress 1ENter to continue. ");
+		printf("\n1User not found. \n\nYou must register yourself.\n\nPress ENter to continue. ");
 		ff;getchar();
 		fclose(f1);fclose(f2);
 		return;
@@ -829,7 +829,7 @@ void transaction()
 		printf("\nCurrent amount in your E-Wallet : %lf\n",v.amount);
 
 		printf("\nYou do not have the required amount in your E-Wallet. \n");
-		printf("\nYou cannot pass... \n\nPress 2Enter to continue...\n");
+		printf("\nYou cannot pass... \n\nPress Enter to continue...\n");
 		ff;getchar();
 	}
 	else
@@ -852,7 +852,7 @@ void transaction()
 		v.tcount++;*/
 		fwrite(&v,sizeof(v),1,f1);
 		fwrite(&t,sizeof(t),1,f2);
-		update_income(amt);
+		ff;getchar();
 	}
 	fclose(f1);
 	fclose(f2);
@@ -860,13 +860,91 @@ void transaction()
 	return;
 }
 
-void update_income(double amt,)
+void update_income()
 {
-	FILE* f=fopen("admin_data.txt","rb+");
-
-	fclose(f);
+	
 	return;
 }
 
-void user_transaction();
-void admin_transaction();
+void user_transaction(user u)
+{
+	trans v;
+	int i=1;
+	system("clear");ff;
+	getchar();
+	printf("\nTransactions of user (Date wise) %s \n",u.id);
+	FILE* f=fopen("transaction.txt","ab+");
+	fseek(f,0,SEEK_CUR);
+	while(!feof(f))
+	{
+		fread(&v,sizeof(v),1,f);
+		if(strcmp(v.id,u.id)==0)
+		{
+			printf("\n%d . %s : %lf\n",i,v.time_stamp,v.amt);
+			i++;
+		}
+	}
+	fclose(f);
+	ff;getchar();
+	return;
+}
+void admin_transaction(admin a)
+{
+	trans v;
+	int i=1;
+	system("clear");ff;
+	printf("\nADMIN'S PROFILE : \n\nTransactions (Date wise)  \n");
+	FILE* f=fopen("transaction.txt","ab+");
+	fseek(f,0,SEEK_CUR);
+	while(!feof(f))
+	{
+		fread(&v,sizeof(v),1,f);
+		
+		printf("\n%d . Date : %s    Amount : %lf\n",i,v.time_stamp,v.amt);
+		i++;
+	}
+	fclose(f);	
+	ff;getchar();getchar();
+	return;
+}
+void admin_income(admin a)
+{
+	trans v;
+	admin u;
+	int i=1;
+	double inc=0;
+	system("clear");ff;
+	printf("\nADMIN's PROFILE : \n\nTotal Income :  ");
+	FILE* f=fopen("transaction.txt","ab+");
+	FILE* g=fopen("admin_data.txt","rb+");
+
+	fseek(f,0,SEEK_SET);
+	while(!feof(f))
+	{
+		fread(&v,sizeof(v),1,f);
+		
+		//printf("\n%d . %s : %lf\n",i,v.time_stamp,v.amt);
+		inc+=v.amt;
+		i++;
+	}
+
+	fseek(g,0,SEEK_SET);
+	while(!feof(g))
+	{
+		fread(&u,sizeof(u),1,g);
+		if(strcmp(u.id,a.id)==0)
+		{
+			break;
+		}
+	}
+	a.income=inc;
+	fseek(g,-1*sizeof(a),SEEK_CUR);
+	fwrite(&a,sizeof(a),1,g);
+	printf("%lf\n",a.income);
+	printf("\nPress Enter to continue. 	");
+	fclose(g);
+	fclose(f);	
+	ff;
+
+	return;
+}
