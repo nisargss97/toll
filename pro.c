@@ -814,10 +814,10 @@ void transaction()
 	printf("\nEnter Car no : ");
 	ff;scanf("%s",u.id);
 
-	while(!feof(f1))
+	while(fread(&v,sizeof(v),1,f1))
 	{
 
-		fread(&v,sizeof(v),1,f1);
+		;
 		if(strcmp(v.id,u.id)==0)
 		{
 			flag=1;
@@ -889,9 +889,9 @@ void user_transaction(user u)
 	printf("\nTransactions of user (Date wise) %s \n",u.id);
 	FILE* f=fopen("transaction.txt","ab+");
 	fseek(f,0,SEEK_CUR);
-	while(!feof(f))
+	while(fread(&v,sizeof(v),1,f))
 	{
-		fread(&v,sizeof(v),1,f);
+		;
 		if(strcmp(v.id,u.id)==0)
 		{
 			printf("\n%d . %s    Amount : %lf\n",i,v.time_stamp,v.amt);
@@ -910,9 +910,10 @@ void admin_transaction(admin a)
 	printf("\nADMIN'S PROFILE : \n\nTransactions (Date wise)  \n");
 	FILE* f=fopen("transaction.txt","ab+");
 	fseek(f,0,SEEK_CUR);
-	while(!feof(f))
+	while(		fread(&v,sizeof(v),1,f))
 	{
-		fread(&v,sizeof(v),1,f);
+//		if(feof(f))break;
+//		fread(&v,sizeof(v),1,f);
 		
 		printf("\n%d . Date : %s    User : %s\n    Amount : %lf\n     ",i,v.time_stamp,v.id,v.amt);
 		i++;
@@ -933,9 +934,9 @@ void admin_income(admin a)
 	FILE* g=fopen("admin_data.txt","rb+");
 
 	fseek(f,0,SEEK_SET);
-	while(!feof(f))
+
+	while(fread(&v,sizeof(v),1,f))
 	{
-		fread(&v,sizeof(v),1,f);
 		
 		//printf("\n%d . %s : %lf\n",i,v.time_stamp,v.amt);
 		inc+=v.amt;
